@@ -45,7 +45,7 @@ function moviesApi(app) {
     '/:movieId',
     validationHandler({ movieId: movieIdSchema }, 'params'),
     async function(req, res, next) {
-      cacheResponse(res, FIVE_MINUTES_IN_SECONDS);      
+      cacheResponse(res, SIXTY_MINUTES_IN_SECONDS);      
       const { movieId } = req.params;
 
       try {
