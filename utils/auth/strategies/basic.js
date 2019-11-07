@@ -24,6 +24,7 @@ passport.use(new BasicStrategy(async function(email, password, cb) {
 
     delete user.password;
 
+    // return user
     return cb(null, user);
 
   } catch(error) {
