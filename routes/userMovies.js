@@ -1,5 +1,6 @@
 // lib for create route
 const express = require('express');
+const passport = require('passport');
 
 // services
 const UserMoviesServices = require('../services/userMovies');
@@ -12,6 +13,9 @@ const { movieIdSchema } = require('../utils/schemas/movies');
 const { userIdSchema } = require('../utils/schemas/users');
 const { createUserMovieSchema } = require('../utils/schemas/userMovies');
 
+// import JWT strategy
+require('../utils/auth/strategies/jwt');
+
 function userMoviesApi(app) {
   const router = express.Router();
   app.use('/api/user-movies', router);
@@ -20,13 +24,14 @@ function userMoviesApi(app) {
 
   router.get(
     '/',
+    passport.authenticate('jwt', { session: false }),
     validationHandler({ userId: userIdSchema }, 'query'),
     async function(req, res, next) {
       const { userId } = req.query;
 
       try {
         const userMovies = await userMoviesService.getUserMovies({ userId });
-        
+
         res.status(200).json({
           data: userMovies,
           message: 'user movies listed'
@@ -37,40 +42,49 @@ function userMoviesApi(app) {
     }
   );
 
-  router.post('/', validationHandler(createUserMovieSchema), async function(req, res, next) {
-    const { body: userMovie } = req;
+  router.post(
+    '/',
+    passport.authenticate('jwt', { session: false }),
+    validationHandler(createUserMovieSchema),
+    async function(req, res, next) {
+      const { body: userMovie } = req;
 
-    try {
-      const createdUserMovieId = await userMoviesService.createUserMovie({
-        userMovie
-      });
+      try {
+        const createdUserMovieId = await userMoviesService.createUserMovie({
+          userMovie
+        });
 
-      res.status(201).json({
-        data: createdUserMovieId,
-        message: 'user movie created'
-      });
-    } catch(error) {
-      next(error);
+        res.status(201).json({
+          data: createdUserMovieId,
+          message: 'user movie created'
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  });
+  );
 
-  router.delete('/:userMovieId', validationHandler({ userMovieid: movieIdSchema}, 'params'), async function(req, res, next) {
-    const { userMovieId } = req.params;
+  router.delete(
+    '/:userMovieId',
+    passport.authenticate('jwt', { session: false }),
+    validationHandler({ userMovieid: movieIdSchema }, 'params'),
+    async function(req, res, next) {
+      const { userMovieId } = req.params;
 
-    try {
-      const deleteUserMovieId = await userMoviesService.deleteUserMovieId({
-        userMovieId
-      });
+      try {
+        const deleteUserMovieId = await userMoviesService.deleteUserMovieId({
+          userMovieId
+        });
 
-      res.status(200).json({
-        data: deleteUserMovieId, 
-        message: 'user movie deleted'
-      })
-
-    } catch(error) {
-      next(error);
+        res.status(200).json({
+          data: deleteUserMovieId,
+          message: 'user movie deleted'
+        });
+      } catch (error) {
+        next(error);
+      }
     }
-  })
+  );
 }
 
 module.exports = userMoviesApi;

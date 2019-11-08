@@ -3,8 +3,13 @@ const passport = require('passport');
 const boom = require('@hapi/boom');
 const jwt = require('jsonwebtoken');
 const ApiKeysService = require('../services/apiKeys');
-
+// lo usaremos para crear usuarios
+const UsersServices = require('../services/users'); 
+const validationHandler = require('../utils/middleware/validationHandler');
 const { config } = require('../config');
+
+// importamos esquemas
+const { createUserSchema } = require('../utils/schemas/users');
 
 // Basic Strategy
 require('../utils/auth/strategies/basic');
@@ -14,6 +19,7 @@ function authApi(app) {
   app.use('/api/auth', router);
 
   const apiKeysService = new ApiKeysService();
+  const userService = new UsersServices();
 
   router.post('/sign-in', async function(req, res, next) {
     // token que determina que clases de permisos tendrá, vendra del request
@@ -74,6 +80,25 @@ function authApi(app) {
       }
       // como es un custom Callback, debemos hace un Clousure con la firma de la ruta.
     })(req, res, next); 
+  });
+
+
+  // implementación de creación de usuarios
+  router.post('/sign-up', validationHandler(createUserSchema), async function(req, res, next) {
+    const { body: user } = req;
+
+    try {
+      // recordemos que este servicio se encarga de tomar el password, hacer hash con él e insertarlo en la BD
+      const createdUserId = await userService.createUser({ user });
+
+      res.status(201).json({
+        data: createdUserId,
+        message: 'User created'
+      });
+    } catch(error) {
+      next(error);
+    }
+
   });
 }
 

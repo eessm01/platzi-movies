@@ -13,7 +13,7 @@ class UsersService {
   }
 
   async createUser({ user }) {
-    const { name,  email, password } = user;
+    const { name, email, password } = user;
     // crea un password encriptado
     const hashedPassword = await bcrypt.hash(password,10);
 
