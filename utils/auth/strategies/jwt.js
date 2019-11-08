@@ -21,7 +21,7 @@ passport.use(
 
       delete user.password;
 
-      // return user
+      // return user without error
       cb(null, {...user, scopes: tokenPayload.scopes });
 
     } catch(error) {
